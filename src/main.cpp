@@ -1,28 +1,37 @@
 #include <Arduino.h>
-#include <FastLED.h>
 
-// put function declarations here:
-int myFunction(int, int);
+constexpr unsigned long LED_INTERVAL_MS = 1500;
+constexpr unsigned long ADC_INTERVAL_MS = 500;
+
+unsigned long lastLedChange = 0;
+unsigned long lastAdcRead = 0;
+bool ledOn = true;
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
   pinMode(LED_BUILTIN, OUTPUT);
-
-
+  digitalWrite(LED_BUILTIN, HIGH);
+  pinMode(A0, INPUT);
+  pinMode(A1, INPUT);
+  Serial.begin(9600);
 }
 
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);
-  delay(1500);
-  digitalWrite(LED_BUILTIN, LOW);
-  delay(1500);
-  
+  const unsigned long now = millis();
 
-  // put your main code here, to run repeatedly:
-}
+  if (now - lastLedChange >= LED_INTERVAL_MS) {
+    lastLedChange = now;
+    ledOn = !ledOn;
+    digitalWrite(LED_BUILTIN, ledOn ? HIGH : LOW);
+  }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  if (now - lastAdcRead >= ADC_INTERVAL_MS) {
+    lastAdcRead = now;
+    const int adcA0 = analogRead(A0);
+    const int adcA1 = analogRead(A1);
+
+    Serial.print(F("A0:"));
+    Serial.print(adcA0);
+    Serial.print(F("\tA1:"));
+    Serial.println(adcA1);
+  }
 }
